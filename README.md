@@ -106,7 +106,7 @@ https://xxx.workers.dev/registerWebhook
 1. 长按用户转发的消息
 2. 选择"回复"
 3. 输入 `/block`
-4. 发送 → "UID:123456789屏蔽成功"
+4. UID:123456789屏蔽成功
 
 ---
 

@@ -9,7 +9,6 @@ function generateMathProblem() {
     timeZone: TIMEZONE,
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
     hour12: false
   });
   
@@ -22,8 +21,8 @@ function generateMathProblem() {
     }
   });
   
-  // 合成 HHmmss（6位数字）
-  const timeDigits = timeObj.hour + timeObj.minute + timeObj.second;
+  // ✨ 改进 1：只取 HHmm（4位数字），不取秒
+  const timeDigits = timeObj.hour + timeObj.minute;
   
   // 随机选取两个不同的位置
   let pos1 = Math.floor(Math.random() * timeDigits.length);
@@ -32,7 +31,7 @@ function generateMathProblem() {
     pos2 = Math.floor(Math.random() * timeDigits.length);
   }
   
-  // ✨ 改进 1：随机生成两个不同的加值
+  // ✨ 随机生成两个不同的加值
   let addValue1 = Math.floor(Math.random() * (VERIFY_ADD_VALUE_MAX - VERIFY_ADD_VALUE_MIN + 1)) + VERIFY_ADD_VALUE_MIN;
   let addValue2 = Math.floor(Math.random() * (VERIFY_ADD_VALUE_MAX - VERIFY_ADD_VALUE_MIN + 1)) + VERIFY_ADD_VALUE_MIN;
   while (addValue2 === addValue1) {
@@ -47,11 +46,11 @@ function generateMathProblem() {
   const result1 = (digit1 + addValue1) % 10;
   const result2 = (digit2 + addValue2) % 10;
   
-  // ✨ 改进 2：使用模板字符串保留前导0
+  // ✨ 使用模板字符串保留前导0
   const answer = `${result1}${result2}`;
   
-  // 问题显示
-  const question = `🔐 以当前时间: ${timeObj.hour}:${timeObj.minute}:${timeObj.second} 为基准\n\n第${pos1 + 1}位数字 + ${addValue1} = ?\n第${pos2 + 1}位数字 + ${addValue2} = ?\n\n按顺序组成两位数即为答案`;
+  // ✨ 改进 2：隐藏具体时间，只显示"上海时间"提示
+  const question = `🔐 以上海时间为基准\n\n第${pos1 + 1}位数字 + ${addValue1} = ?\n第${pos2 + 1}位数字 + ${addValue2} = ?\n\n按顺序组成两位数即为答案`;
   
   return { 
     question: question, 

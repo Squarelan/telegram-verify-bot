@@ -1,38 +1,56 @@
 /**
- * 生成数学验证题（包含加减乘除，答案在100以内）
+ * 生成时间基础的数学验证题
+ * 使用 Intl.DateTimeFormat 获取指定时区的时间
+ * 随机选取时间中的两位数字，各加上一个随机值，超过10取个位数
  */
 function generateMathProblem() {
-  const operators = ['+', '-', '*', '÷'];
-  const operator = operators[Math.floor(Math.random() * operators.length)];
+  // 使用 Intl.DateTimeFormat 获取指定时区的时间
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: TIMEZONE,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
   
-  let a, b, answer;
+  // 解析格式化后的时间部分
+  const parts = formatter.formatToParts(new Date());
+  const timeObj = {};
+  parts.forEach(part => {
+    if (part.type !== 'literal') {
+      timeObj[part.type] = part.value;
+    }
+  });
   
-  if (operator === '+') {
-    a = Math.floor(Math.random() * 50) + 1;
-    b = Math.floor(Math.random() * 50) + 1;
-    answer = a + b;
-  } else if (operator === '-') {
-    a = Math.floor(Math.random() * 100) + 1;
-    b = Math.floor(Math.random() * a);
-    answer = a - b;
-  } else if (operator === '*') {
-    a = Math.floor(Math.random() * 10) + 1;
-    b = Math.floor(Math.random() * 10) + 1;
-    answer = a * b;
-  } else { // ÷
-    b = Math.floor(Math.random() * 9) + 1;
-    answer = Math.floor(Math.random() * 10) + 1;
-    a = answer * b;
+  // 合成 HHmmss（6位数字）
+  const timeDigits = timeObj.hour + timeObj.minute + timeObj.second;
+  
+  // 随机选取两个不同的位置
+  let pos1 = Math.floor(Math.random() * timeDigits.length);
+  let pos2 = Math.floor(Math.random() * timeDigits.length);
+  while (pos2 === pos1) {
+    pos2 = Math.floor(Math.random() * timeDigits.length);
   }
   
-  // 确保答案在100以内
-  while (answer > 100) {
-    return generateMathProblem();
-  }
+  // 随机生成加上的固定值 (1-9)
+  const addValue = Math.floor(Math.random() * (VERIFY_ADD_VALUE_MAX - VERIFY_ADD_VALUE_MIN + 1)) + VERIFY_ADD_VALUE_MIN;
+  
+  // 获取两个数字
+  const digit1 = parseInt(timeDigits[pos1]);
+  const digit2 = parseInt(timeDigits[pos2]);
+  
+  // 计算答案（超过10则取个位数）
+  const result1 = (digit1 + addValue) % 10;
+  const result2 = (digit2 + addValue) % 10;
+  
+  const answer = result1.toString() + result2.toString();
+  
+  // 问题显示
+  const question = `🔐 时间: ${timeObj.hour}:${timeObj.minute}:${timeObj.second}\n第${pos1 + 1}位数字(${digit1}) + ${addValue} = ${digit1 + addValue} → ${result1}\n第${pos2 + 1}位数字(${digit2}) + ${addValue} = ${digit2 + addValue} → ${result2}\n\n答案是多少?`;
   
   return { 
-    question: `${a} ${operator} ${b}`, 
-    answer: answer.toString()
+    question: question, 
+    answer: answer
   };
 }
 
@@ -49,6 +67,11 @@ const MAX_VERIFY_ATTEMPTS = 10;  // 🔢 最多尝试10次
 const VERIFICATION_TTL = 300;  // ⏱️ 验证码过期时间：5分钟（300秒）
 const VERIFIED_TTL = 259200;  // ⏱️ 验证成功有效期：3天（259200秒）
 
+// ✨ 新增：时区和验证算法配置
+const VERIFY_ADD_VALUE_MIN = 1;      // 随机加值最小范围
+const VERIFY_ADD_VALUE_MAX = 9;      // 随机加值最大范围
+let TIMEZONE;  // 动态配置，从环境变量读取
+
 /**
  * 处理请求的主入口（用于 Service Worker）
  */
@@ -58,6 +81,7 @@ function initConfig(env) {
   ADMIN_UID = env.ADMIN_UID;
   WEBHOOK = '/endpoint';
   lan = env.lan;
+  TIMEZONE = env.TIMEZONE || 'UTC';  // ✨ 新增：读取时区配置，默认 UTC
   
   if (!TOKEN || !SECRET || !ADMIN_UID) {
     throw new Error('❌ 环境变量未配置: BOT_TOKEN, BOT_SECRET, ADMIN_UID');

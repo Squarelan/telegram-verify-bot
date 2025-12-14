@@ -49,8 +49,8 @@ function generateMathProblem() {
   // ✨ 使用模板字符串保留前导0
   const answer = `${result1}${result2}`;
   
-  // ✨ 改进 2：隐藏具体时间，只显示"上海时间"提示
-  const question = `🔐 以上海时间为基准\n\n第${pos1 + 1}位数字 + ${addValue1} = ?\n第${pos2 + 1}位数字 + ${addValue2} = ?\n\n按顺序组成两位数即为答案`;
+  // ✨ 改进 2：隐藏具体时间，只显示"UTC+8时间"提示
+  const question = `以UTC+8时间的 时分（HHMM格式，仅数字）四位数字的\n\n第${pos1 + 1}位数字 + ${addValue1} = ?\n第${pos2 + 1}位数字 + ${addValue2} = ?\n\n按顺序组成两位数即为答案`;
   
   return { 
     question: question, 
@@ -617,24 +617,27 @@ async function handleGuestMessage(message) {
 
         const options = generateOptions(parseInt(answer));
 
+        // ✨ 改进：将所有选项格式化为两位字符串
+        const formattedOptions = options.map(opt => String(opt).padStart(2, '0'));
+
         const keyboard = {
           inline_keyboard: [
             [
-              { text: options[0], callback_data: `verify_${options[0]}_${answer}` },
-              { text: options[1], callback_data: `verify_${options[1]}_${answer}` },
-              { text: options[2], callback_data: `verify_${options[2]}_${answer}` }
+              { text: formattedOptions[0], callback_data: `verify_${formattedOptions[0]}_${answer}` },
+              { text: formattedOptions[1], callback_data: `verify_${formattedOptions[1]}_${answer}` },
+              { text: formattedOptions[2], callback_data: `verify_${formattedOptions[2]}_${answer}` }
             ],
             [
-              { text: options[3], callback_data: `verify_${options[3]}_${answer}` },
-              { text: options[4], callback_data: `verify_${options[4]}_${answer}` },
-              { text: options[5], callback_data: `verify_${options[5]}_${answer}` }
+              { text: formattedOptions[3], callback_data: `verify_${formattedOptions[3]}_${answer}` },
+              { text: formattedOptions[4], callback_data: `verify_${formattedOptions[4]}_${answer}` },
+              { text: formattedOptions[5], callback_data: `verify_${formattedOptions[5]}_${answer}` }
             ]
           ]
         };
 
         return sendMessage({
           chat_id: chatId,
-          text: `🔐 请回答以下问题以验证你不是机器人：\n\n${question} = ?`,
+          text: `🔐 请回答以下问题以验证你不是机器人：\n\n${question}`,
           reply_markup: keyboard
         });
       } else {
@@ -673,12 +676,16 @@ async function handleGuestMessage(message) {
  * 生成六个选项（包含正确答案）
  */
 function generateOptions(correctAnswer) {
+  // ✨ 确保输入范围在 0-99
+  correctAnswer = Math.max(0, Math.min(99, correctAnswer));
+  
   const options = [correctAnswer];
   
   while (options.length < 6) {
-    let wrongAnswer = correctAnswer + Math.floor(Math.random() * 20) - 10;
+    // 生成 0-99 范围内的错误答案
+    let wrongAnswer = Math.floor(Math.random() * 100);
     
-    if (wrongAnswer !== correctAnswer && !options.includes(wrongAnswer) && wrongAnswer > 0) {
+    if (wrongAnswer !== correctAnswer && !options.includes(wrongAnswer)) {
       options.push(wrongAnswer);
     }
   }

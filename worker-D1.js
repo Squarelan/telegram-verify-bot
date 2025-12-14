@@ -32,21 +32,26 @@ function generateMathProblem() {
     pos2 = Math.floor(Math.random() * timeDigits.length);
   }
   
-  // 随机生成加上的固定值 (1-9)
-  const addValue = Math.floor(Math.random() * (VERIFY_ADD_VALUE_MAX - VERIFY_ADD_VALUE_MIN + 1)) + VERIFY_ADD_VALUE_MIN;
+  // ✨ 改进 1：随机生成两个不同的加值
+  let addValue1 = Math.floor(Math.random() * (VERIFY_ADD_VALUE_MAX - VERIFY_ADD_VALUE_MIN + 1)) + VERIFY_ADD_VALUE_MIN;
+  let addValue2 = Math.floor(Math.random() * (VERIFY_ADD_VALUE_MAX - VERIFY_ADD_VALUE_MIN + 1)) + VERIFY_ADD_VALUE_MIN;
+  while (addValue2 === addValue1) {
+    addValue2 = Math.floor(Math.random() * (VERIFY_ADD_VALUE_MAX - VERIFY_ADD_VALUE_MIN + 1)) + VERIFY_ADD_VALUE_MIN;
+  }
   
   // 获取两个数字
   const digit1 = parseInt(timeDigits[pos1]);
   const digit2 = parseInt(timeDigits[pos2]);
   
   // 计算答案（超过10则取个位数）
-  const result1 = (digit1 + addValue) % 10;
-  const result2 = (digit2 + addValue) % 10;
+  const result1 = (digit1 + addValue1) % 10;
+  const result2 = (digit2 + addValue2) % 10;
   
-  const answer = result1.toString() + result2.toString();
+  // ✨ 改进 2：使用模板字符串保留前导0
+  const answer = `${result1}${result2}`;
   
   // 问题显示
-  const question = `🔐 以当前时间: ${timeObj.hour}:${timeObj.minute}:${timeObj.second} 为基准\n\n第${pos1 + 1}位数字 + ${addValue} = ?\n第${pos2 + 1}位数字 + ${addValue} = ?\n\n按顺序组成两位数即为答案`;
+  const question = `🔐 以当前时间: ${timeObj.hour}:${timeObj.minute}:${timeObj.second} 为基准\n\n第${pos1 + 1}位数字 + ${addValue1} = ?\n第${pos2 + 1}位数字 + ${addValue2} = ?\n\n按顺序组成两位数即为答案`;
   
   return { 
     question: question, 
